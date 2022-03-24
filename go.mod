@@ -1,3 +1,3 @@
-module github.com/xiayuguo/aes
+module github.com/morysky/aes
 
-go 1.12
+go 1.16
