@@ -20,9 +20,9 @@ func TestEncrypt(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			output, _ := AesEncrypt(tC.input, Key)
+			output, _ := Encrypt(tC.input, Key)
 			if output != tC.output {
-				t.Errorf("AesEncrypt(%s) = %s; excepted %s", tC.input, output, tC.output)
+				t.Errorf("Encrypt(%s) = %s; excepted %s", tC.input, output, tC.output)
 			}
 		})
 	}
@@ -42,9 +42,9 @@ func TestDecrypt(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			output, _ := AesDecrypt(tC.input, Key)
+			output, _ := Decrypt(tC.input, Key)
 			if output != tC.output {
-				t.Errorf("AesDecrypt(%s) = %s; excepted %s", tC.input, output, tC.output)
+				t.Errorf("Decrypt(%s) = %s; excepted %s", tC.input, output, tC.output)
 			}
 		})
 	}
