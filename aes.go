@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 )
 
 // Sha256Key sha256 加密
@@ -27,12 +28,12 @@ func PKCS7Padding(ciphertext []byte) []byte {
 // PKCS7UnPadding 放出数据
 func PKCS7UnPadding(origData []byte) []byte {
 	length := len(origData)
-	unpadding := int(origData[length-1])
-	return origData[:(length - unpadding)]
+	unPadding := int(origData[length-1])
+	return origData[:(length - unPadding)]
 }
 
-// AesEncrypt 加密
-func AesEncrypt(origData, key string) (string, error) {
+// Encrypt 加密
+func Encrypt(origData, key string) (string, error) {
 	newKey := Sha256Key(key)
 	block, err := aes.NewCipher(newKey)
 	if err != nil {
@@ -46,8 +47,8 @@ func AesEncrypt(origData, key string) (string, error) {
 	return base64.StdEncoding.EncodeToString(crypted), nil
 }
 
-// AesDecrypt 解密
-func AesDecrypt(crypted, key string) (string, error) {
+// Decrypt 解密
+func Decrypt(crypted, key string) (string, error) {
 	newKey := Sha256Key(key)
 	block, err := aes.NewCipher(newKey)
 	if err != nil {
@@ -56,7 +57,32 @@ func AesDecrypt(crypted, key string) (string, error) {
 	newCrypted, _ := base64.StdEncoding.DecodeString(crypted)
 	blockMode := cipher.NewCBCDecrypter(block, newKey[:16])
 	origData := make([]byte, len(newCrypted))
+
+	err = checkBlocks(origData, newCrypted, block.BlockSize())
+	if err != nil {
+		return "", err
+	}
+
 	blockMode.CryptBlocks(origData, newCrypted)
 	origData = PKCS7UnPadding(origData)
 	return string(origData), nil
+}
+
+func checkBlocks(dst, src []byte, blockSize int) error {
+	if len(src)%blockSize != 0 {
+		return fmt.Errorf("crypto/cipher: input not full blocks")
+	}
+
+	if len(dst) < len(src) {
+		return fmt.Errorf("crypto/cipher: output smaller than input")
+	}
+
+	// @FIXME
+	/*
+		if subtle.InexactOverlap(dst[:len(src)], src) {
+			return fmt.Errorf("crypto/cipher: invalid buffer overlap")
+		}
+	*/
+
+	return nil
 }
