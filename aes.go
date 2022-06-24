@@ -25,6 +25,14 @@ func PKCS7Padding(ciphertext []byte) []byte {
 	return append(ciphertext, paddingText...)
 }
 
+// PKCS5Padding ...
+func PKCS5Padding(ciphertext []byte) []byte {
+	bs := 8
+	padding := bs - len(ciphertext)%bs
+	paddingText := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, paddingText...)
+}
+
 // PKCS7UnPadding 放出数据
 func PKCS7UnPadding(origData []byte) []byte {
 	length := len(origData)
@@ -42,6 +50,21 @@ func Encrypt(origData, key string) (string, error) {
 	newOrigData := []byte(origData)
 	newOrigData = PKCS7Padding(newOrigData)
 	blockMode := cipher.NewCBCEncrypter(block, newKey[:16])
+	crypted := make([]byte, len(newOrigData))
+	blockMode.CryptBlocks(crypted, newOrigData)
+	return base64.StdEncoding.EncodeToString(crypted), nil
+}
+
+// EncryptWithPKCS5Padding ...
+func EncryptWithPKCS5Padding(origData, key string) (string, error) {
+	newKey := Sha256Key(key)
+	block, err := aes.NewCipher(newKey)
+	if err != nil {
+		return "", err
+	}
+	newOrigData := []byte(origData)
+	newOrigData = PKCS5Padding(newOrigData)
+	blockMode := cipher.NewCBCEncrypter(block, newKey[:8])
 	crypted := make([]byte, len(newOrigData))
 	blockMode.CryptBlocks(crypted, newOrigData)
 	return base64.StdEncoding.EncodeToString(crypted), nil
